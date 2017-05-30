@@ -1,0 +1,52 @@
+.App {
+    text-align: center;
+}
+.App-logo {
+    height: 80px;
+}
+.App-header {
+    background-color: #333;
+    height: 150px;
+    padding: 20px;
+    color: white;
+}
+.App-header a {
+    color: #4682b4;
+    text-decoration: none;
+    font-weight: bold;
+}
+a.activeLink {
+    color: #87CEEB;
+    cursor: default;
+    text-decoration: none;
+    padding: 5px 10px;
+    background-color: #444;
+    border-radius: 10px;
+}
+.App-intro {
+    font-size: large;
+}
+.error {
+    color: red;
+}
+ul.standard {
+    display: block;
+    text-align: left;
+}
+ul.standard li {
+    display: inline-block;
+    margin-left: 33%;
+    width: 66%;
+}
+span.link {
+    cursor: pointer;
+}
+
+div.loading {
+    position: absolute;
+    bottom: 32px;
+    text-align: center;
+    margin: auto;
+    width: 100%;
+    font-size: 90%;
+}
