@@ -39,15 +39,9 @@ export const store = {
 
         Rx.Observable.from(value)
             .subscribe(
-                value => {
-                    this[subject].next({ storeGlobal, key, value: cbs.onSuccess(value) });
-                },
-                error => {
-                    this[subject].next({ storeGlobal, key, value: cbs.onSuccess(error) });
-                },
-                comlpete => {
-                    cbs.onComplete(value);
-                }
+                value => this[subject].next({ storeGlobal, key, value: cbs.onSuccess(value) }),
+                error => this[subject].next({ storeGlobal, key, value: cbs.onError(error) }),
+                comlpete => cbs.onComplete(value)
             );
     },
     get(component, key) {
