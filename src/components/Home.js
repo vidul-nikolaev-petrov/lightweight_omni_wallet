@@ -13,9 +13,9 @@ class Home extends Component {
         store$.subscribe(this);
 
         this.state = {
-            address: store$.getVal(this, 'address') || null,
-            addressData: store$.getVal(this, 'addressData') || [],
-            addressTXdata: store$.getVal(this, 'addressTXdata') || [],
+            address: store$.get(this, 'address') || null,
+            addressData: store$.get(this, 'addressData') || [],
+            addressTXdata: store$.get(this, 'addressTXdata') || [],
             error: null,
             isLoading: false,
         };
@@ -26,7 +26,7 @@ class Home extends Component {
     }
 
     formChangeAddress(event) {
-        store$.dispatch(this, 'address', [event.target.value]);
+        store$.dispatch(this, 'address', [event.target.value], { storeGlobal: true });
     }
 
     formSubmit(event) {
@@ -69,7 +69,12 @@ class Home extends Component {
             this.setState({ isLoading: false });
         };
 
-        store$.dispatch(this, 'addressData', request, { onSuccess, onError, onComplete });
+        store$.dispatch(this, 'addressData', request, {
+            onSuccess,
+            onError,
+            onComplete,
+            storeGlobal: true,
+        });
     }
 
     showTXinfo(proxy, event, explorer='omniwallet') {
@@ -102,7 +107,8 @@ class Home extends Component {
             return error.message;
         };
 
-        const onComplete = () => {
+        const onComplete = (value) => {
+            console.log('TX data updated:', value)
             this.setState({ isLoading: false });
         };
 
