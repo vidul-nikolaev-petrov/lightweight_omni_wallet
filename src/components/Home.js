@@ -1,16 +1,21 @@
 /*eslint-disable no-unused-vars*/
 import React, { Component } from 'react';
 import { Router, Route, hashHistory } from 'react-router';
+import Rx from 'rxjs/Rx';
+import { urls as Urls } from '../constants';
 import Loading from './Loading';
+import { store as store$ } from '../store';
 import '../App.css';
 
 class Home extends Component {
     constructor(props) {
         super(props);
+        store$.subscribe(this);
+
         this.state = {
-            address: null,
-            addressData: [],
-            addressTXdata: [],
+            address: store$.getVal(this, 'address') || null,
+            addressData: store$.getVal(this, 'addressData') || [],
+            addressTXdata: store$.getVal(this, 'addressTXdata') || [],
             error: null,
             isLoading: false,
         };
@@ -21,15 +26,17 @@ class Home extends Component {
     }
 
     formChangeAddress(event) {
-        this.setState({ address: event.target.value });
+        store$.dispatch(this, 'address', [event.target.value]);
     }
 
     formSubmit(event) {
         event.preventDefault();
-        this.getAddressData();
+        this.getAddressData(); // @TODO: plugin other explorers
     }
 
-    async getAddressData(event) {
+    getAddressData(explorer='omniwallet') {
+        const urlAddress = Urls.address[explorer];
+
         this.setState({
             errorAddressData: null,
             isLoading: true,
@@ -37,73 +44,69 @@ class Home extends Component {
             addressTXdata: [],
         });
 
-        try {
-            const url = 'https://www.omniwallet.org/v1/address/addr/';
-            const body = `addr=${this.state.address}`;
-            const options = {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body
-            };
+        const url = urlAddress.url;
+        const options = urlAddress.options(this.state.address);
+        const request= fetch(url, options).then(response => response.json());
 
-            const response = await fetch(url, options);
-            const data = await response.json();
-
-            await (() => {
-                this.setState({ addressData: data.balance });
-            })();
-        }
-        catch (e) {
+        const onSuccess = value => {
             this.setState({
-                errorAddressData: e.message,
+                addressData: value.balance,
+            });
+
+            return value.balance;
+        };
+
+        const onError = error => {
+            this.setState({
+                errorAddressData: error.message,
                 addressData: [],
             });
-        }
-        finally {
+
+            return error.message;
+        };
+
+        const onComplete = () => {
             this.setState({ isLoading: false });
-        }
+        };
+
+        store$.dispatch(this, 'addressData', request, { onSuccess, onError, onComplete });
     }
 
-    async showTXinfo() {
+    showTXinfo(proxy, event, explorer='omniwallet') {
+        const urlTXs = Urls.transactions[explorer];
+        const url = urlTXs.url;
+        const options = urlTXs.options(this.state.address);
+
         this.setState({
             errorAddressTXdata: null,
             isLoading: true,
             addressTXdata: [],
         });
 
-        try {
-            const url = 'https://www.omniwallet.org/v1/transaction/address';
-            const body = `addr=${this.state.address}`; 
-            const options = {
-                method: 'POST',
-                mode: 'cors',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body
-            };
+        const request = fetch(url, options).then(response => response.json());
 
-            const response = await fetch(url, options);
-            const data = await response.json();
-
-            await (() => {
-                const addressTXdata = data.transactions;
-                this.setState({ addressTXdata });
-            })();
-        }
-        catch (e) {
+        const onSuccess = value => {
             this.setState({
-                errorAddressTXdata: e.message,
+                addressTXdata: value.transactions,
+            });
+
+            return value.transactions;
+        };
+
+        const onError = error => {
+            this.setState({
+                errorAddressTXdata: error.message,
                 addressTXdata: [],
             });
-        }
-        finally {
+
+            return error.message;
+        };
+
+        const onComplete = () => {
             this.setState({ isLoading: false });
-        }
+        };
+
+        store$.dispatch(this, 'addressTXdata', request, { onSuccess, onError, onComplete });
     }
 
     render() {
@@ -111,7 +114,7 @@ class Home extends Component {
           <div>
             <div className="App-intro">
               <br />
-              Initial Page
+              Initial Page {this.state.address}
             </div>
 
             <div>
@@ -120,7 +123,8 @@ class Home extends Component {
               <form onSubmit={this.formSubmit}>
                 <label>
                   Pub key&nbsp;
-                  <input type="text" value={this.state.address || ''} onChange={this.formChangeAddress} />&nbsp;
+                  <input type="text" value={this.state.address || ''}
+                        onChange={this.formChangeAddress} />&nbsp;
                 </label>
                 <input style={{display: this.state.isLoading ? 'none' : 'inline'}} type="submit" />
               </form>
