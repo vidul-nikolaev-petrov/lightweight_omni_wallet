@@ -10,7 +10,7 @@ export const store = {
             this[name.subject] = new Rx.Subject();
             this[name.subject].subscribe(result => {
                 console.log('observer:', result.value);
-                this[name.store][result.target] = result.value;
+                this[name.store][result.target] = objectAssign(result.value);
             });
         }
     },
@@ -53,3 +53,7 @@ export const store = {
         return { comp, store, subject };
     },
 };
+
+function objectAssign(object) {
+    return JSON.parse(JSON.stringify(object));
+}
