@@ -10,7 +10,6 @@ fs.readFile(thisPath(__filename, 'src'), 'utf8').then(
 );
 */
 
-export default fs;
-export { dialog, thisPath };
+export { fs as default, dialog, thisPath };
 
 

@@ -1,9 +1,10 @@
 import Rx from 'rxjs/Rx';
+import { SafexString } from './constants';
 
 export const store = {
-    ids: {
-        store: 'store_',
-        storeGlobal: 'storeGlobal_',
+    ids: { // namespace prefixes
+        store: '$',
+        storeGlobal: '$$',
         subject: 'subject$',
     },
     subscribe(component) {
@@ -25,24 +26,29 @@ export const store = {
         const { comp, subject } = this.getName(component);
         const storeGlobal = cbs.storeGlobal;
 
-        cbs.onSuccess = cbs.onSuccess || (value => {
+        cbs.onSuccess = isCbGiven(cbs.onSuccess) || (value => {
             this[comp].setState({ [key]: value });
             return value;
         });
 
-        cbs.onError = cbs.onError || (error => {
-            this[comp].setState({ [`error${key}`]: error });
+        cbs.onError = isCbGiven(cbs.onError) || (error => {
+            const errorKey = `error${new SafexString(key).toUpperFirst()}`;
+            this[comp].setState({ [errorKey]: error.message });
             return error;
         });
         
-        cbs.onComplete = cbs.onComplete || (() => {});
+        cbs.onComplete = isCbGiven(cbs.onComplete) || (() => {});
 
         Rx.Observable.from(value)
             .subscribe(
-                value => this[subject].next({ storeGlobal, key, value: cbs.onSuccess(value) }),
-                error => this[subject].next({ storeGlobal, key, value: cbs.onError(error) }),
+                value => this[subject].next({ storeGlobal, key, value: cbs.onSuccess(value) || value }),
+                error => this[subject].next({ storeGlobal, key, value: cbs.onError(error) || error }),
                 comlpete => cbs.onComplete(value)
             );
+
+        function isCbGiven(f) {
+            return ['function', 'object'].includes(typeof f) && f;
+        }
     },
     get(component, key) {
         const { store } = this.getName(component);

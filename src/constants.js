@@ -1,5 +1,7 @@
 export const isEnvProduction = process.env.NODE_ENV === 'production';
 
+export const filenameWallet = 'safex.wallet';
+
 export const urls = {
     address: {
         omniwallet: {
@@ -32,3 +34,30 @@ export const urls = {
         },
     },
 };
+
+export class SafexString extends String {
+    constructor(text) {
+        super(text);
+        this.text = text;
+    }
+
+    toTitleCase() {
+        return this.toUpper(/\w\S*/g);
+    }
+
+    toUpperFirst() {
+        return this.toUpper(/\w\S*/);
+    }
+
+    toUpper(regex) {
+        return this.replace(regex, s => s[0].toUpperCase() + s.substr(1));  
+    }
+
+    toString() {
+        return this.text;
+    }
+
+    valueOf() {
+        return this.text;
+    }
+}
