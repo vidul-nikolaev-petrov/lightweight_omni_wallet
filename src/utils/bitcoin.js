@@ -30,6 +30,6 @@ export default {
             return buffer;
         }
         
-        return { wif: wif, address: address };
+        return { wif, address };
     }
 };

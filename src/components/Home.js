@@ -31,8 +31,8 @@ class Home extends React.Component {
         
         const onError = error => {
             this.setState({
-                errorWalletData: error.code,
-                walletExists: error.code === 'ENOENT',
+                errorWalletData: error.message,
+                walletExists: error.code !== 'ENOENT',
                 isLoading: false,
             });
         };
@@ -57,8 +57,10 @@ class Home extends React.Component {
             <div>
                 {this.state.walletData}<br />
                 <Display if={this.state.errorWalletData}>
-                    error code: {this.state.errorWalletData}<br />
-                    wallet does not exist: {this.state.walletExists.toString()}<br />
+                    {this.state.errorWalletData}<br />
+                    <Display if={!this.state.walletExists}>
+                        Create new wallet <Link to="/settings/address">here</Link><br />
+                    </Display>
                 </Display>
             </div>
 

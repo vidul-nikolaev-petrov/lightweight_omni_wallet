@@ -39,7 +39,7 @@ export const store = {
         
         cbs.onComplete = isCbGiven(cbs.onComplete) || (() => {});
 
-        Rx.Observable.from(value)
+        return Rx.Observable.from(value)
             .subscribe(
                 value => this[subject].next({ storeGlobal, key, value: cbs.onSuccess(value) || value }),
                 error => this[subject].next({ storeGlobal, key, value: cbs.onError(error) || error }),
