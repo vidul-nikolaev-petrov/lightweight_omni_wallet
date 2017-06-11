@@ -1,4 +1,5 @@
 /*eslint-disable no-unused-vars*/
+import crypto from 'crypto';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { isEnvProduction } from './constants';
@@ -9,8 +10,6 @@ import './index.css';
 if (isEnvProduction) {
     console.log = () => {};
 }
-
-import crypto, { createHash as sourceCreateHash } from 'crypto';
 
 // Patch https://github.com/bitpay/bitcore-lib/issues/34
 (function replaceCryptoCreateHash() {
