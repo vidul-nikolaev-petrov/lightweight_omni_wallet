@@ -41,6 +41,9 @@ const TXhistoryPlaceholder = () => (
             <Link to="/history/2">TX 2</Link><br />
             <Link to="/history/3">TX 3</Link><br />
         </div>
+        <div>
+            <AddressHistory />
+        </div>
     </div>
 );
 

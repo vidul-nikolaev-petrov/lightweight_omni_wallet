@@ -1,18 +1,20 @@
-import bitcoin from 'bitcoinjs-lib';
+import bitcore from 'bitcore-lib';
 import uuidV4 from 'uuid/v4';
 
 export default {
     generateAddress(mouseMoves) {
-        const keyPair = bitcoin.ECPair.makeRandom({ rng });
-        const address = keyPair.getAddress();
-        const wif = keyPair.toWIF();
+        const bitcoin = random();
+        const wif = bitcoin.toWIF();
+        const address = bitcoin.toAddress().toString();
 
-        function rng() {
+        return { wif, address };
+
+        function random() {
             if (!mouseMoves) {
                 throw new ReferenceError('mouseMoves is not defined');
             }
 
-            var buffer,
+            var bitcoin, buffer, hash,
                 moves = Array.from(new Array(16), () => 1),
                 uuid = uuidV4().replace(/-/g, '').slice(0, 16);
 
@@ -23,13 +25,13 @@ export default {
             });
 
             moves = moves.map(e => e.toString(16)[0]);
-            buffer = bitcoin.crypto.sha256(uuid + moves.join(''));
+            buffer = new Buffer(uuid + moves.join(''));
+            hash = bitcore.crypto.Hash.sha256(buffer);
+            bitcoin = bitcore.crypto.BN.fromBuffer(hash);
 
-            console.log(uuid, moves.join(''), mouseMoves.length, mouseMoves);
+            console.log(mouseMoves.length, buffer.toString());
 
-            return buffer;
+            return new bitcore.PrivateKey(bitcoin);
         }
-        
-        return { wif, address };
     }
 };

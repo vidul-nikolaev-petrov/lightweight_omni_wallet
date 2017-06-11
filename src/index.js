@@ -10,4 +10,13 @@ if (isEnvProduction) {
     console.log = () => {};
 }
 
+import crypto, { createHash as sourceCreateHash } from 'crypto';
+
+// Patch https://github.com/bitpay/bitcore-lib/issues/34
+(function replaceCryptoCreateHash() {
+    const orgCreateHash = crypto.createHash;
+
+    crypto.createHash = algo => orgCreateHash(algo === 'ripemd160' ? 'rmd160' : algo);
+})();
+
 ReactDOM.render(routes, document.getElementById('root'));
