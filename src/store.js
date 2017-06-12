@@ -2,38 +2,48 @@ import Rx from 'rxjs/Rx';
 import { SafexString } from './constants';
 
 export const store = {
-    ids: { // namespace prefixes
-        store: '$',
-        storeGlobal: '$$',
-        subject: 'subject$',
-    },
+    // namespace prefixes
+    // ids: {
+    //     store: '$',
+    //     storeGlobal: '$$',
+    //     subject: 'subject$',
+    // },
     subscribe(component) {
         const name = this.getName(component);
-        this[name.comp] = component; // new react context
+        this.$[name.comp] = component; // new react context
 
-        if (!this[name.store]) {
-            this[name.store] = {};
-            this[name.subject] = new Rx.Subject();
-            this[name.subject].subscribe(result => {
-                this[name.store][result.key] = this.objectAssign(result.value);
-                if (result.storeGlobal) {
-                    this[this.ids.storeGlobal][result.key] = this[name.store][result.key];
+        if (!this.$[name.store]) {
+            this.$[name.store] = {};
+            this.$[name.subject] = new Rx.Subject();
+            this.$[name.subject].subscribe(
+                value => {
+                    const key = value.key || value.errorKey;
+                    const val = value.value;
+                    this.$[name.store][key] = this.objectAssign(val);
+                    if (value.storeGlobal) {
+                        this.$$[key] = this.$[name.store][key];
+                    }
+                    console.log('key:', key);
+                    console.log(this.$);
                 }
-            });
+            );
         }
+    },
+    complete(component) {
+        // @TODO cleanup
     },
     dispatch(component, key, value, cbs={}) {
         const { comp, subject } = this.getName(component);
+        const errorKey = `error${new SafexString(key).toUpperFirst()}`;
         const storeGlobal = cbs.storeGlobal;
 
         cbs.onSuccess = isCbGiven(cbs.onSuccess) || (value => {
-            this[comp].setState({ [key]: value });
+            this.$[comp].setState({ [key]: value });
             return value;
         });
 
         cbs.onError = isCbGiven(cbs.onError) || (error => {
-            const errorKey = `error${new SafexString(key).toUpperFirst()}`;
-            this[comp].setState({ [errorKey]: error.message });
+            this.$[comp].setState({ [errorKey]: error.message });
             return error;
         });
         
@@ -41,8 +51,8 @@ export const store = {
 
         return Rx.Observable.from(value)
             .subscribe(
-                value => this[subject].next({ storeGlobal, key, value: cbs.onSuccess(value) || value }),
-                error => this[subject].next({ storeGlobal, key, value: cbs.onError(error) || error }),
+                value => this.$[subject].next({ storeGlobal, key, value: cbs.onSuccess(value) || value }),
+                error => this.$[subject].next({ storeGlobal, errorKey, value: cbs.onError(error) || error }),
                 comlpete => cbs.onComplete(value)
             );
 
@@ -52,15 +62,16 @@ export const store = {
     },
     get(component, key) {
         const { store } = this.getName(component);
-        return this[store][key];
+        return this.$[store][key];
     },
     getGlobal(key) {
-        return this[this.ids.storeGlobal][key];
+        return this.$$[key];
     },
     getName(component) {
-        const comp = component.constructor.name,
-            store = this.ids['store'] + comp, // store: component's namespace
-            subject = this.ids['subject'] + comp; // Rx subject: identifier
+        var comp = component.constructor.name;
+        const store = '$' + comp; // store: component's namespace
+        const subject = 'subject$' + comp; // Rx subject: identifier
+        comp = 'component' + store;
         return { comp, store, subject };
     },
     objectAssign(object) {
@@ -69,5 +80,6 @@ export const store = {
 };
 
 (function initStore() {
-    store[store.ids.storeGlobal] = {};
+    store.$ = {};
+    store.$$ = {};
 })();

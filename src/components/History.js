@@ -90,12 +90,13 @@ class AddressHistory extends React.Component {
 
         const url = urlAddress.url;
         const options = urlAddress.options(this.state.address);
-        const request= fetch(url, options).then(response => response.json());
+        const request = fetch(url, options).then(res => {
+            if (res.ok) return res.json();
+            throw new Error(`Network error: ${res.status}`);
+        });
 
         const onSuccess = value => {
-            this.setState({
-                addressData: value.balance,
-            });
+            this.setState({ addressData: value.balance });
             return value.balance;
         };
 
@@ -103,6 +104,7 @@ class AddressHistory extends React.Component {
             this.setState({
                 errorAddressData: error.message,
                 addressData: [],
+                isLoading: false,
             });
             return error.message;
         };
@@ -143,6 +145,7 @@ class AddressHistory extends React.Component {
             this.setState({
                 errorAddressTXdata: error.message,
                 addressTXdata: [],
+                isLoading: false,
             });
             return error.message;
         };

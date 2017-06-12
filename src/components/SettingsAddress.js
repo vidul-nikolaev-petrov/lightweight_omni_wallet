@@ -1,7 +1,7 @@
 import React from 'react';
 import { browserHistory } from 'react-router';
 import bitcoin from '../utils/bitcoin';
-import fs from '../utils/fs';
+// import fs from '../utils/fs';
 
 export default class Settings extends React.Component {
     constructor(props) {
